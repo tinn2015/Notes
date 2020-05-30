@@ -1,0 +1,11 @@
+学习记录：
+4.21 state.js initData   --113
+5.11 observe/index.js defineReactive --167
+
+
+
+问题？
+
+1. watcher 是什么时候建立的？
+2. watcher 分为渲染的watcher 和 自己写的watcher
+3. 要看懂 watcher 类
