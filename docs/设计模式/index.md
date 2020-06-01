@@ -197,8 +197,66 @@ function debounce(fn,delay=200){
 }
 ```
 
+# 以下时属于架构型设计模式
+
 ## MVC 模式
+```mermaid
+graph LR
+model --> view --> controller
+```
+model: 数据层
+
+- 页面配置数据
+- 服务端接口返回数据
+
+view: 视图层
+
+- 页面视图
+
+contraller: 逻辑控制层
+
+- 业务逻辑
+
+
+## MVP 模式
+由于复杂业务MVC模式中视图层常常直接访问数据层中得数据， 这样得问题是，控制层并不知道数据层中数据已被修改。最终影响视图渲染。
+
+因此演化出 MVP 模式， 目的是数据层与书图层解耦
+
+```mermaid
+graph LR
+model --> view --> presenter
+```
+view层不能直接访问model中得数据，而是通过persenter来实现对model层内数据得访问。
+所有层次得交互都是发生在presenter层。
+
+```javascript
+MVP.presenter = function () {
+  /* 渲染view */
+  let V = MVP.view
+
+  let M = MVP.model
+
+  return {
+    renderTitle () {
+      /* 类似于这样， presenter直接访问model中的数据 渲染出view */
+      V.renderTitle(M.title)
+    }
+  }
+}
+```
 
 ## MVVM 模式
 
-## MVP 模式
+对于大型应用MVP模式中的persenter 将会很复杂
+
+```mermaid
+graph LR
+Model --> View --> ViewModel-视图模型
+```
+- MVVM本质就是基于操作数据来操作视图进而操作DOM
+- ViewModel是View和Model的关系映射
+- 在MVVM中View和Model是不可以直接进行通信的，它们之间存在这ViewModel这个中介充当着观察者的角色。当用户操作View，ViewModel感知到变化，然后通知Model发生相应改变，反之亦然。ViewModel向上与视图层View进行双向数据绑定，向下与Model通过接口请求进行数据交互，起到承上启下的作用
+vue 就是mvvm 的一种实现
+
+
