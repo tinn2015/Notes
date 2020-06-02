@@ -7,3 +7,9 @@
 ## 设计模式
 
 - [一些常用设计模式总结](https://github.com/tinn2015/Notes/blob/master/docs/%e8%ae%be%e8%ae%a1%e6%a8%a1%e5%bc%8f/index.md)
+
+## 算法入门
+
+## 其他
+
+- [http缓存机制](https://github.com/tinn2015/Notes/blob/master/docs/%e5%85%b6%e4%bb%96/http%e7%bc%93%e5%ad%98%e6%9c%ba%e5%88%b6.md)
