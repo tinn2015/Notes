@@ -160,6 +160,8 @@ function initData (vm: Component) {
         vm
       )
     } else if (!isReserved(key)) {
+      /* isReserved 检查 key是否以 $ 或 _ 开头*/
+      /* vm上修改_data中的key, 也能响应 */
       proxy(vm, `_data`, key)
     }
   }
@@ -167,14 +169,6 @@ function initData (vm: Component) {
   observe(data, true /* asRootData */)
 }
 ```
-vue初始化流程
-``` mermaid
-graph LR
-
-  initMixin --> initState --> initData --> observe --> walk --> defineReactive
-```
-
-从这里开始 将data 变为响应式数据
 
 ## 二 创建响应式数据
 
@@ -217,7 +211,6 @@ export class Observer {
     this.vmCount = 0
     /* vue.__ob__ 指向Observer的this */
     /* 拦截__ob__属性 */
-    debugger
     def(value, '__ob__', this)
     if (Array.isArray(value)) {
       /* 是否有__proto__属性 */
@@ -295,6 +288,7 @@ export function defineReactive (
         if (childOb) {
           childOb.dep.depend()
           if (Array.isArray(value)) {
+            /* 这个方法最后调用的也是dep.depend */
             dependArray(value)
           }
         }
@@ -331,7 +325,7 @@ export function defineReactive (
 因为Object.defineProperty只能拦截对象的属性，这也是vue3.0 将拦截方式改为 [proxy](https://es6.ruanyifeng.com/#docs/proxy) 的原因之一。
 看到这里可以发现收集依赖和触发更新都是通过dep 类实现得。
 
-## 三 什么是收集依赖
+## <span id="updateComponent">三 什么是收集依赖</span>
 收集依赖，其实就是收集watcher。这里要先介绍Watcher 类， 我们回到页面初始化方法initMixin(), 这个方法最后 vm.$mount(vm.$options.el)
 
 ```javascript
@@ -408,7 +402,83 @@ export function mountComponent (
   return vm
 }
 ```
-我们进入Watcher类
+再进入Watcher类之前， 我们先来看下Dep类
+
+```javascript
+export default class Dep {
+  /* target 就是 watcher */
+  static target: ?Watcher;
+  id: number;
+  subs: Array<Watcher>;
+
+  constructor () {
+    this.id = uid++
+    /* 这是一个watcher 队列 */
+    this.subs = []
+  }
+
+  addSub (sub: Watcher) {
+    this.subs.push(sub)
+  }
+
+  removeSub (sub: Watcher) {
+    remove(this.subs, sub)
+  }
+
+  depend () {
+    if (Dep.target) {
+      Dep.target.addDep(this)
+    }
+  }
+
+  notify () {
+    // stabilize the subscriber list first
+    const subs = this.subs.slice()
+    if (process.env.NODE_ENV !== 'production' && !config.async) {
+      // subs aren't sorted in scheduler if not running async
+      // we need to sort them now to make sure they fire in correct
+      // order
+      /* */
+      subs.sort((a, b) => a.id - b.id)
+    }
+    for (let i = 0, l = subs.length; i < l; i++) {
+      /* 这里开始运行watcher的 update 方法 */
+      subs[i].update()
+    }
+  }
+}
+
+  // The current target watcher being evaluated.
+  // This is globally unique because only one watcher
+  // can be evaluated at a time.
+  /* 同时只能有一个watcher执行 */
+
+  /* 只有两种这两种方法可以改变 Dep.target */
+  Dep.target = null
+  const targetStack = []
+
+  export function pushTarget (target: ?Watcher) {
+    targetStack.push(target)
+    Dep.target = target
+  }
+
+  export function popTarget () {
+    targetStack.pop()
+    Dep.target = targetStack[targetStack.length - 1]
+  }
+```
+
+Dep 就是watcher的一个管理器。
+- 收集watcher
+- 跟新watcher， update()
+
+注意这里的Dep.target, 这个全局属性执行是当前的watcher。
+
+在Observe --> defineProperty --> get --> dep.depend() 方法， 就是讲当前的watcher push 到subs 队列中。
+
+在Observe --> defineProperty --> set --> dep.notify() 方法， 就是循环subs 执行watchers.update 方法。
+
+接下来 我们进入Watcher 类：
 
 ```javascript
 export default class Watcher {
@@ -430,6 +500,7 @@ export default class Watcher {
   getter: Function;
   value: any;
 
+  /* 一堆入参， 我们先关注isRenderWatcher、lazy */
   constructor (
     vm: Component,
     expOrFn: string | Function,
@@ -534,27 +605,6 @@ export default class Watcher {
   }
 
   /**
-   * Clean up for dependency collection.
-   */
-  cleanupDeps () {
-    let i = this.deps.length
-    while (i--) {
-      const dep = this.deps[i]
-      if (!this.newDepIds.has(dep.id)) {
-        dep.removeSub(this)
-      }
-    }
-    let tmp = this.depIds
-    this.depIds = this.newDepIds
-    this.newDepIds = tmp
-    this.newDepIds.clear()
-    tmp = this.deps
-    this.deps = this.newDeps
-    this.newDeps = tmp
-    this.newDeps.length = 0
-  }
-
-  /**
    * Subscriber interface.
    * Will be called when a dependency changes.
    */
@@ -639,15 +689,19 @@ export default class Watcher {
   }
 }
 ```
-这里我们主要关注watcher 中的get() 和 addDep() 方法实现收集逻辑。
-get()方法中pushTarget, 我们进入看一下这块的逻辑。
+这里其实是一个watcher工厂， 跟据类型返回不同的watcher实例。这里我们通过isRenderWatcher = true可得到此时是一个renderWatcher。
+this.lazy 判断是否需要及时渲染， mount中lazy = false, 进入get 方法
+```mermaid
+graph LR
 
-```javascript
-
-/* 5.29 tinn */
+将Dep.target指向当前watcher --> this.getter.call更新视图
 ```
+[this.getter方法是什么](#updateComponent)
 
-当前我们实例的是renderWatcher, 除此之外还有 user-watcher, computed-watcher
+所以在组件$mount 就是创建watcher然后在watcher的get()中更新视图的。
+<!-- tinn 6.6 -->
+
+另外当前我们实例的是renderWatcher, 除此之外还有 user-watcher, computed-watcher
 
 ```javascript
 // user-watcher
@@ -690,71 +744,6 @@ new Vue({
 
 ![响应式](./imgs/watch.png)
 
-```javascript
-export default class Dep {
-  /* target 就是 watcher */
-  static target: ?Watcher;
-  id: number;
-  subs: Array<Watcher>;
-
-  constructor () {
-    this.id = uid++
-    /* 这是一个watcher 队列 */
-    this.subs = []
-  }
-
-  addSub (sub: Watcher) {
-    this.subs.push(sub)
-  }
-
-  removeSub (sub: Watcher) {
-    remove(this.subs, sub)
-  }
-
-  depend () {
-    if (Dep.target) {
-      Dep.target.addDep(this)
-    }
-  }
-
-  notify () {
-    // stabilize the subscriber list first
-    const subs = this.subs.slice()
-    if (process.env.NODE_ENV !== 'production' && !config.async) {
-      // subs aren't sorted in scheduler if not running async
-      // we need to sort them now to make sure they fire in correct
-      // order
-      /* */
-      subs.sort((a, b) => a.id - b.id)
-    }
-    for (let i = 0, l = subs.length; i < l; i++) {
-      subs[i].update()
-    }
-  }
-}
-
-  // The current target watcher being evaluated.
-  // This is globally unique because only one watcher
-  // can be evaluated at a time.
-  /* 同时只能有一个watcher执行 */
-
-  /* 只有两种这两种方法可以改变 Dep.target */
-  Dep.target = null
-  const targetStack = []
-
-  export function pushTarget (target: ?Watcher) {
-    targetStack.push(target)
-    Dep.target = target
-  }
-
-  export function popTarget () {
-    targetStack.pop()
-    Dep.target = targetStack[targetStack.length - 1]
-  }
-```
-
-Dep 是整个响应式中介， 他连接着 watcher 和 observe 的桥梁
-
 
 
 ## 五 更新试图
@@ -764,6 +753,28 @@ vue 主要是三个阶段， 初始化阶段， 依赖收集阶段， 响应阶�
 ## 六 下期预告（diff）
 
 ## 流程图
+加入响应式流程
+``` mermaid
+graph TD
+
+  initMixin --> initState --> initData --> observe --> walk --> defineReactive
+
+  defineReactive --> get --> dep.depend
+
+  defineReactive --> set --> dep.notify
+
+  initMixin --> $mount --> mountComponent --> Watcher --> dep.pushTarget
+```
+
+从这里开始 将data 变为响应式数据
+
+## 一些问题思考
+
+1. $nextTick 是如何实现的？
+
+1. 为什么现在mvvm模式成为主流？
+
+2. 这种模式就是最好的吗？
 
 ## 参考
 [你不知道的Vue响应式原理](https://juejin.im/post/5a734b6cf265da4e70719386)

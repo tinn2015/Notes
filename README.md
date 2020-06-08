@@ -8,6 +8,10 @@
 
 - [一些常用设计模式总结](https://github.com/tinn2015/Notes/blob/master/docs/%e8%ae%be%e8%ae%a1%e6%a8%a1%e5%bc%8f/index.md)
 
+## 前端安全
+
+- [XSS和CSRF](https://github.com/tinn2015/Notes/blob/master/docs/%e5%89%8d%e7%ab%af%e5%ae%89%e5%85%a8/index.md)
+
 ## 算法入门
 
 ## 其他
