@@ -8,6 +8,9 @@
 
 - [一些常用设计模式总结](https://github.com/tinn2015/Notes/blob/master/docs/%e8%ae%be%e8%ae%a1%e6%a8%a1%e5%bc%8f/index.md)
 
+## 浏览器原理
+- [事件循环](https://github.com/tinn2015/Notes/blob/master/docs/%e6%b5%8f%e8%a7%88%e5%99%a8%e5%8e%9f%e7%90%86/%e4%ba%8b%e4%bb%b6%e5%be%aa%e7%8e%af.md)
+
 ## 前端安全
 
 - [XSS和CSRF](https://github.com/tinn2015/Notes/blob/master/docs/%e5%89%8d%e7%ab%af%e5%ae%89%e5%85%a8/index.md)
