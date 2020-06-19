@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>promise</title>
+</head>
+<body>
+
+  <script>
+    //Promise/A+规范的三种状态
+    const PENDING = 'pending'
+    const FULFILLED = 'fulfilled'
+    const REJECTED = 'rejected'
+
+    class myPromise {
+      constructor (execution) {
+        this._status = PENDING
+
+        this._resolveQueue = []
+        this._rejectQueue = []
+
+        let _resolve = (val) => {
+          if (this._status !== PENDING) return
+          this._status = FULFILLED
+
+          while (this._resolveQueue.length) {
+            debugger
+            let callback = this._resolveQueue.shift()
+            callback(val)
+          }
+        }
+
+        let _reject = (val) => {
+          if (this._status !== PENDING) return
+          this._status = FULFILLED
+          
+          while (this._rejectQueue.length) {
+            debugger
+            let callback = this._rejectQueue.shift()
+            callback(val)
+          }
+        }
+        
+        // 如果是异步的那么会先执行then 方法将成功和失败方法加入到各自队列
+        execution(_resolve, _reject)
+      }
+      
+      // then方法
+      then(success, fail) {
+        return new myPromise((resolve, reject) => {
+          debugger
+          /* 
+            val就是resolve的res
+            重构success方法，这里得有一个re
+           */
+          let fulfilledFn = (val) => {
+            success(val)
+            resolve(val)
+          }
+          let rejectFn = () => {
+            fail('err')
+            reject('err')
+          }
+          
+          /* 这是是push到每个then的promise实例中 */
+          this._resolveQueue.push(fulfilledFn)
+          this._rejectQueue.push(rejectFn)
+          console.log(this._rejectQueue, this._resolveQueue)
+        })
+      }
+
+      /* 参考例子 */
+
+      // then(resolveFn, rejectFn) {
+      //   //return一个新的promise
+      //   return new myPromise((resolve, reject) => {
+      //     //把resolveFn重新包装一下,再push进resolve执行队列,这是为了能够获取回调的返回值进行分类讨论
+      //     const fulfilledFn = value => {
+      //       try {
+      //         //执行第一个(当前的)Promise的成功回调,并获取返回值
+      //         let x = resolveFn(value)
+      //         //分类讨论返回值,如果是Promise,那么等待Promise状态变更,否则直接resolve
+      //         //这里resolve之后，就能被下一个.then()的回调获取到返回值，从而实现链式调用
+      //         x instanceof myPromise ? x.then(resolve, reject) : resolve(x)
+      //       } catch (error) {
+      //         reject(error)
+      //       }
+      //     }
+      //     debugger
+      //     //把后续then收集的依赖都push进当前Promise的成功回调队列中(_rejectQueue), 这是为了保证顺序调用
+      //     this._resolveQueue.push(fulfilledFn)
+
+      //     //reject同理
+      //     const rejectedFn  = error => {
+      //       try {
+      //         let x = rejectFn(error)
+      //         x instanceof myPromise ? x.then(resolve, reject) : resolve(x)
+      //       } catch (error) {
+      //         reject(error)
+      //       }
+      //     }
+      //     this._rejectQueue.push(rejectedFn)
+      //   })
+      // }
+
+    }
+
+    /* test */
+    var a = new myPromise ((resolve, reject) => {
+      setTimeout(() => {
+        console.log(1)
+        resolve('success')
+      }, 10000)
+    }).then((res) => {
+      debugger
+      console.log(res)
+      return 2
+    }, () => {}).then((res) => {
+      debugger
+      console.log(3)
+      return 3
+    }, () => {})
+  </script>
+</body>
+</html>

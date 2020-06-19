@@ -220,10 +220,7 @@ A = decorator(A) || A;
 # 以下时属于架构型设计模式
 
 ## MVC 模式
-```mermaid
-graph LR
-model --> view --> controller
-```
+![](./imgs/mvc.png)
 model: 数据层
 
 - 页面配置数据
@@ -237,17 +234,28 @@ contraller: 逻辑控制层
 
 - 业务逻辑
 
+***
+
+1. View 传送指令到 Controller
+2. Controller 完成业务逻辑后，要求 Model 改变状态
+3. Model 将新的数据发送到 View，用户得到反馈
+
 
 ## MVP 模式
 由于复杂业务MVC模式中视图层常常直接访问数据层中得数据， 这样得问题是，控制层并不知道数据层中数据已被修改。最终影响视图渲染。
 
-因此演化出 MVP 模式， 目的是数据层与书图层解耦
+因此演化出 MVP 模式， 目的是数据层与视图层解耦
 
-```mermaid
-graph LR
-model --> view --> presenter
-```
+![](./imgs/mvp.png)
+
+1. 各部分之间的通信，都是双向的。
+
+2. View 与 Model 不发生联系，都通过 Presenter 传递。
+
+3. View 非常薄，不部署任何业务逻辑，称为"被动视图"（Passive View），即没有任何主动性，而 Presenter非常厚，所有逻辑都部署在那里。
+
 view层不能直接访问model中得数据，而是通过persenter来实现对model层内数据得访问。
+
 所有层次得交互都是发生在presenter层。
 
 ```javascript
@@ -270,10 +278,8 @@ MVP.presenter = function () {
 
 对于大型应用MVP模式中的persenter 将会很复杂
 
-```mermaid
-graph LR
-Model --> View --> ViewModel-视图模型
-```
+![](./imgs/mvvm.png)
+
 - MVVM本质就是基于操作数据来操作视图进而操作DOM
 - ViewModel是View和Model的关系映射
 - 在MVVM中View和Model是不可以直接进行通信的，它们之间存在这ViewModel这个中介充当着观察者的角色。当用户操作View，ViewModel感知到变化，然后通知Model发生相应改变，反之亦然。ViewModel向上与视图层View进行双向数据绑定，向下与Model通过接口请求进行数据交互，起到承上启下的作用

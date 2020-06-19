@@ -1,5 +1,8 @@
 # 工作过程中得学习总结
 
+## js基础
+- [一些js问题总结](https://github.com/tinn2015/Notes/blob/master/docs/js%e5%9f%ba%e7%a1%80/index.md)
+
 ## Vue源码
 
 - [响应式原理](https://github.com/tinn2015/Notes/blob/master/docs/vue%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8E%9F%E7%90%86/index.md)
@@ -20,3 +23,7 @@
 ## 其他
 
 - [http缓存机制](https://github.com/tinn2015/Notes/blob/master/docs/%e5%85%b6%e4%bb%96/http%e7%bc%93%e5%ad%98%e6%9c%ba%e5%88%b6.md)
+
+- [https](https://github.com/tinn2015/Notes/blob/master/docs/%e5%85%b6%e4%bb%96/https.md)
+
+- [promise](https://github.com/tinn2015/Notes/blob/master/docs/%e5%85%b6%e4%bb%96/promise.md)
