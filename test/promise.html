@@ -13,7 +13,7 @@
     const FULFILLED = 'fulfilled'
     const REJECTED = 'rejected'
 
-    class myPromise {
+    class MyPromise {
       constructor (execution) {
         this._status = PENDING
 
@@ -24,6 +24,8 @@
           if (this._status !== PENDING) return
           this._status = FULFILLED
 
+          /* 记录当前value， 以便后面执行success */
+          this._value = val
           while (this._resolveQueue.length) {
             debugger
             let callback = this._resolveQueue.shift()
@@ -34,6 +36,8 @@
         let _reject = (val) => {
           if (this._status !== PENDING) return
           this._status = FULFILLED
+
+          this._value = val
           
           while (this._rejectQueue.length) {
             debugger
@@ -48,74 +52,75 @@
       
       // then方法
       then(success, fail) {
-        return new myPromise((resolve, reject) => {
+
+        // 根据规范then参数必须是function, 不是则忽略继续执行后面的then
+        typeof success !== 'function' ? success = value => value : null
+        typeof fail !== 'function' ? fail = rejectFn = reason => {
+          throw new Error(reason instanceof Error? reason.message:reason);
+        } : null
+
+        return new MyPromise((resolve, reject) => {
           debugger
           /* 
             val就是resolve的res
             重构success方法，这里得有一个re
            */
           let fulfilledFn = (val) => {
-            success(val)
-            resolve(val)
+            try {
+              let x = success(val)
+              x instanceof MyPromise ? x.then(resolve, reject) : resolve(x)
+            } catch (err) {
+              reject(err)
+            }
           }
-          let rejectFn = () => {
-            fail('err')
-            reject('err')
+
+          let rejectedFn = (error) => {
+            try {
+              let x = fali(error)
+              x instanceof MyPromise ? x.then(resolve, reject) : resolve(x)
+            } catch (error) {
+              reject(error)
+            }
           }
-          
-          /* 这是是push到每个then的promise实例中 */
-          this._resolveQueue.push(fulfilledFn)
-          this._rejectQueue.push(rejectFn)
           console.log(this._rejectQueue, this._resolveQueue)
+
+          switch (this._status) {
+            case PENDING:
+              /* 这是是push到每个then的promise实例中 */
+              this._resolveQueue.push(fulfilledFn)
+              this._rejectQueue.push(rejectedFn)
+              break
+            // 当状态已经变为resolve/reject时,直接执行then回调
+            case FULFILLED:
+              fulfilledFn(this._value)
+              break
+            case REJECTED:
+              rejectedFn(this._value)
+              break
+          }
         })
       }
 
-      /* 参考例子 */
-
-      // then(resolveFn, rejectFn) {
-      //   //return一个新的promise
-      //   return new myPromise((resolve, reject) => {
-      //     //把resolveFn重新包装一下,再push进resolve执行队列,这是为了能够获取回调的返回值进行分类讨论
-      //     const fulfilledFn = value => {
-      //       try {
-      //         //执行第一个(当前的)Promise的成功回调,并获取返回值
-      //         let x = resolveFn(value)
-      //         //分类讨论返回值,如果是Promise,那么等待Promise状态变更,否则直接resolve
-      //         //这里resolve之后，就能被下一个.then()的回调获取到返回值，从而实现链式调用
-      //         x instanceof myPromise ? x.then(resolve, reject) : resolve(x)
-      //       } catch (error) {
-      //         reject(error)
-      //       }
-      //     }
-      //     debugger
-      //     //把后续then收集的依赖都push进当前Promise的成功回调队列中(_rejectQueue), 这是为了保证顺序调用
-      //     this._resolveQueue.push(fulfilledFn)
-
-      //     //reject同理
-      //     const rejectedFn  = error => {
-      //       try {
-      //         let x = rejectFn(error)
-      //         x instanceof myPromise ? x.then(resolve, reject) : resolve(x)
-      //       } catch (error) {
-      //         reject(error)
-      //       }
-      //     }
-      //     this._rejectQueue.push(rejectedFn)
-      //   })
-      // }
-
+      // catch 执行的是then 的第二个回调
+      catch(rejectFn) {
+        return this.then(undefined, rejectFn)
+      }
     }
 
     /* test */
-    var a = new myPromise ((resolve, reject) => {
+    var a = new MyPromise ((resolve, reject) => {
       setTimeout(() => {
         console.log(1)
         resolve('success')
       }, 10000)
     }).then((res) => {
       debugger
-      console.log(res)
-      return 2
+      return new MyPromise((resolve, reject) => {
+        setTimeout(() => {
+          debugger
+          resolve(2)
+        }, 1000)
+      })
     }, () => {}).then((res) => {
       debugger
       console.log(3)

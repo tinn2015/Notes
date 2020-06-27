@@ -27,3 +27,7 @@
 - [https](https://github.com/tinn2015/Notes/blob/master/docs/%e5%85%b6%e4%bb%96/https.md)
 
 - [promise](https://github.com/tinn2015/Notes/blob/master/docs/%e5%85%b6%e4%bb%96/promise.md)
+
+- [async/await](https://github.com/tinn2015/Notes/blob/master/docs/%e5%85%b6%e4%bb%96/async+await%e5%ae%9e%e7%8e%b0.md)
+
+- [一个Url的过程](https://github.com/tinn2015/Notes/blob/master/docs/%e5%85%b6%e4%bb%96/%e4%b8%80%e4%b8%aaUrl%e7%9a%84%e8%bf%87%e7%a8%8b.md)
