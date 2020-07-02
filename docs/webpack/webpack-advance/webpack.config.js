@@ -1,9 +1,18 @@
 //webpack.config.js
 const path = require('path')
+
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const isDev = process.env.NODE_ENV === 'development';
 const config = require('./public/config')[isDev ? 'dev' : 'build'];
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+const webpack = require('webpack')
+
+/* 抽离css */
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+
+/* 压缩css */
+const OptimizeCssPlugin = require('optimize-css-assets-webpack-plugin')
 
 module.exports = {
 	mode: isDev ? 'development' : 'production',
@@ -33,7 +42,13 @@ module.exports = {
 					{
 						test: /\.(le|c)ss$/,
 						// loader的执行顺序是从右向左执行的， less-loader --> postcss-loader --> css-loader --> style-loader
-						use: ['style-loader', 'css-loader', 'postcss-loader', 'less-loader'],
+						use: [{
+							loader: MiniCssExtractPlugin.loader,
+							options: {
+								hmr: isDev,
+								reloadAll: true
+							}
+						}, 'css-loader', 'postcss-loader', 'less-loader'],
 						exclude: /node_modules/
 					},
 					{
@@ -65,7 +80,27 @@ module.exports = {
 			config: config.template
 				// hash: true //是否加上hash，默认是 false
 		}),
-		new CleanWebpackPlugin()
+		new CleanWebpackPlugin(),
+		new CopyWebpackPlugin([
+			{
+				from: 'public/js/*.js',
+				to: path.resolve(__dirname, 'dist', 'js'),
+				flatten: true // true表示只拷贝文件夹，忽略文件路劲
+			}
+		]),
+		new webpack.ProvidePlugin({
+			Vue: ['vue/dist/vue.esm.js', 'default']
+		}),
+
+		/* 抽离css */
+		new MiniCssExtractPlugin({
+			filename: 'css/[name].css',
+			// publicPath: './' 这个跟out中的publicPath 有关， 如果配置cdn这里也要加上cdn
+		}),
+
+		/* 压缩css */
+		/* 通常生产环境需要 */
+		// new OptimizeCssPlugin()
 	],
 	devtool: isDev ? 'cheap-eval-source-map': 'none'
 }

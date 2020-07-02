@@ -11,3 +11,4 @@ class Animal {
 
 const dog = new Animal('dog')
 console.log(dog)
+console.log(Vue)
