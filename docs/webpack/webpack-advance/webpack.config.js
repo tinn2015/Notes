@@ -16,15 +16,19 @@ const OptimizeCssPlugin = require('optimize-css-assets-webpack-plugin')
 
 module.exports = {
 	mode: isDev ? 'development' : 'production',
-	entry: './src/index.js',
+	entry: {
+		index: './src/index.js',
+		login: './src/login.js'
+	},
 	output: {
 		path: path.resolve(__dirname, 'dist'),
-		filename: 'bundle.[hash:6].js',
+		filename: '[name].[hash:6].js',
 		publicPath: '/'  // 这里通常用来配置CDN
 	},
 	devServer: {
 		port: '3000', //默认是8080
 		open: true,
+		hot: true,
 		quiet: false, //默认不启用
 		inline: true, //默认开启 inline 模式，如果设置为false,开启 iframe 模式
 		stats: "errors-only", //终端仅打印 error
@@ -77,9 +81,23 @@ module.exports = {
 					removeAttributeQuotes: false, //是否删除属性的双引号
 					collapseWhitespace: false, //是否折叠空白
 			},
-			config: config.template
+			config: config.template,
+			chunks: ['index']
 				// hash: true //是否加上hash，默认是 false
 		}),
+
+		new HtmlWebpackPlugin({
+			template: './public/login.html',
+			filename: 'login.html', //打包后的文件名
+			minify: {
+					removeAttributeQuotes: false, //是否删除属性的双引号
+					collapseWhitespace: false, //是否折叠空白
+			},
+			chunks: ['login']
+			// config: config.template
+				// hash: true //是否加上hash，默认是 false
+		}),
+
 		new CleanWebpackPlugin(),
 		new CopyWebpackPlugin([
 			{
@@ -101,6 +119,9 @@ module.exports = {
 		/* 压缩css */
 		/* 通常生产环境需要 */
 		// new OptimizeCssPlugin()
+
+		/* 热重载HRM */
+		new webpack.HotModuleReplacementPlugin()
 	],
 	devtool: isDev ? 'cheap-eval-source-map': 'none'
 }
