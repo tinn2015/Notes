@@ -1,0 +1,10 @@
+body {
+  color: red;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-transition: all 0.3s;
+  transition: all 0.3s;
+  background: url(/large_a44419.jpg);
+}
+
