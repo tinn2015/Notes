@@ -24,6 +24,8 @@
 
 - [webpack进阶](https://github.com/tinn2015/Notes/blob/master/docs/webpack/%e8%bf%9b%e9%98%b6%e9%85%8d%e7%bd%ae%e8%af%b4%e6%98%8e.md)
 
+- [webpack优化](https://github.com/tinn2015/Notes/blob/master/docs/webpack/webpack%e4%bc%98%e5%8c%96.md)
+
 ## 其他
 
 - [http缓存机制](https://github.com/tinn2015/Notes/blob/master/docs/%e5%85%b6%e4%bb%96/http%e7%bc%93%e5%ad%98%e6%9c%ba%e5%88%b6.md)
