@@ -9,6 +9,12 @@
   <img style="max-width: 800px;" src="./imgs/lifecycle.png">
 </div>
 
+### 响应式总结
+vue 主要是三个阶段， 初始化阶段， 依赖收集阶段， 响应阶段  
+get时收集依赖， set时触发更新  
+
+![响应式](./imgs/watch.png)
+
 vue 入口函数
 
 ``` javascript
@@ -30,7 +36,9 @@ renderMixin(Vue)
 
 export default Vue
 ```
-这是vue的构造函数，这些mixin方法主要是往Vue.prototype上挂载属性和方法，这里主要关注initMixin 方法。
+这是vue的构造函数，这些mixin方法主要是往Vue.prototype上挂载属性和方法，
+这里为什么要这么写，而不是直接写在Vue里面？
+这里主要关注initMixin 方法。
 
 ```javascript
 export function initMixin (Vue: Class<Component>) {
@@ -242,6 +250,32 @@ const methodsToPatch = [
   'sort',
   'reverse'
 ]
+
+methodsToPatch.forEach(function (method) {
+  // cache original method
+  /* 拿到原生方法 */
+  const original = arrayProto[method]
+  def(arrayMethods, method, function mutator (...args) {
+    /* 调用原生方法，拿到执行结果 */
+    const result = original.apply(this, args)
+    const ob = this.__ob__
+    let inserted
+    switch (method) {
+      case 'push':
+      case 'unshift':
+        inserted = args
+        break
+      case 'splice':
+        inserted = args.slice(2)
+        break
+    }
+    if (inserted) ob.observeArray(inserted)
+    // notify change
+    /* 每次执行这些方法 都会将变更通知出去，更新视图 */
+    ob.dep.notify()
+    return result
+  })
+})
 ```
 walk主要是循环object属性对其监听拦截。
 
@@ -323,6 +357,17 @@ export function defineReactive (
   })
 }
 ```
+```javascript
+function dependArray (value: Array<any>) {
+  for (let e, i = 0, l = value.length; i < l; i++) {
+    e = value[i]
+    e && e.__ob__ && e.__ob__.dep.depend()
+    if (Array.isArray(e)) {
+      dependArray(e)
+    }
+  }
+}
+```
 ![observe的过程](./imgs/observer.png)
 
 这是观察者的核心方法， 通过Object.defineProperty方法对data的每一个属性进行拦截，在get是时候收集依赖，set的时候更新视图。
@@ -330,7 +375,7 @@ export function defineReactive (
 看到这里可以发现收集依赖和触发更新都是通过dep 类实现得。
 
 ## <span id="updateComponent">三 什么是收集依赖</span>
-收集依赖，其实就是收集watcher。再进入Watcher类之前， 我们先来看下Dep类
+我们先来看下依赖得管理器Dep类
 
 ```javascript
 export default class Dep {
@@ -367,7 +412,7 @@ export default class Dep {
       // subs aren't sorted in scheduler if not running async
       // we need to sort them now to make sure they fire in correct
       // order
-      /* */
+      /* 按加入队列的先后顺序执行update */
       subs.sort((a, b) => a.id - b.id)
     }
     /* 一次更新包含多个watcher */
@@ -399,16 +444,19 @@ export default class Dep {
   /* 这里我们要注意，pushTargrt 和 popTarget调用的地方 */
   /* 可以明确的是在Observer.get之前肯定会先pushTargrt,以保证成功收集依赖 */
 ```
-** 总结一下 **
+**总结一下**  
+
 Dep 就是watcher的一个管理器。
 - 收集watcher
-- 更新watcher
+- 触发watcher更新
 
 注意这里的Dep.target, 这个全局属性执行是当前的watcher。
 
 在Observe --> defineProperty --> get --> dep.depend() 方法， 就是将当前的watcher push 到subs 队列中。
 
 在Observe --> defineProperty --> set --> dep.notify() 方法， 就是循环subs 执行watchers.update 方法。
+
+## 四 依赖就是Watcher
 
 **为了说明watcher,我们回到页面初始化方法initMixin(), 这个方法最后 vm.$mount(vm.$options.el)**
 
@@ -579,7 +627,8 @@ export default class Watcher {
     let value
     const vm = this.vm
     try {
-      /* 这里直接更新视图 */
+      /* 这里直接更新视图， 实际上就是执行刚才传入的updateComponent */
+      /* 更新时能触发Observe.get， 触发dep 收集这个watcher */
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {
@@ -709,11 +758,12 @@ export default class Watcher {
 这里其实是一个watcher工厂， 跟据类型返回不同的watcher实例。有的需要默认更新视图， 又得不需要。这里我们通过isRenderWatcher = true可得到此时是一个renderWatcher。
 this.lazy 判断是否需要及时渲染， mount中lazy = false, 进入get 方法
 
+收集依赖的过程：  
 
 ```mermaid
 graph LR
 
-将Dep.target指向当前watcher --> this.getter.call更新视图 --> vm._update
+Observe.get --> Dep.depend --> Dep.target.addDep --> 将Dep.target指向当前watcher --> dep.addsub
 
 ```
 
@@ -754,35 +804,105 @@ new Vue({
 })
 
 ```
-所以在vue中有四种方式创建watcher, 这里说的时render-watcher, 其余的不做拓展。
+所以在vue中有四种方式创建watcher
 1. render
 2. computed
 3. watch
 4. vm.$watch
 
+我们来看一个computed 实现
 
-## 响应式总结
-vue 主要是三个阶段， 初始化阶段， 依赖收集阶段， 响应阶段
+在入口的initState上
 
-![响应式](./imgs/watch.png)
-
-get时收集依赖， set时触发更新
-
-## 流程图
-加入响应式流程
-```mermaid
-graph TD
-
-  initMixin --> initState --> initData --> observe --> walk --> defineReactive
-
-  defineReactive --> get --> dep.depend --> Dep.target.addDep --> dep.addSub
-
-  defineReactive --> set --> dep.notify --> ......
-
-  initMixin --> $mount --> mountComponent --> Watcher --> dep.pushTarget
+```javascript
+export function initState (vm: Component) {
+  vm._watchers = []
+  const opts = vm.$options
+  if (opts.props) initProps(vm, opts.props)
+  if (opts.methods) initMethods(vm, opts.methods)
+  if (opts.data) {
+    initData(vm)
+  } else {
+    observe(vm._data = {}, true /* asRootData */)
+  }
+  /* 初始化 computed */
+  if (opts.computed) initComputed(vm, opts.computed)
+  if (opts.watch && opts.watch !== nativeWatch) {
+    /* 初始化watcher */
+    initWatch(vm, opts.watch)
+  }
+}
 ```
 
-## 一些问题思考
+```javascript
+const computedWatcherOptions = { lazy: true }
+
+function initComputed (vm: Component, computed: Object) {
+  // $flow-disable-line
+  const watchers = vm._computedWatchers = Object.create(null)
+  // computed properties are just getters during SSR
+  const isSSR = isServerRendering()
+  /* 传入的computed是一个对象， 循环这个对象 */
+  for (const key in computed) {
+    /* 这里的userDef实际就是我们在computed中的处理方法 */
+    const userDef = computed[key]
+    const getter = typeof userDef === 'function' ? userDef : userDef.get
+    if (process.env.NODE_ENV !== 'production' && getter == null) {
+      warn(
+        `Getter is missing for computed property "${key}".`,
+        vm
+      )
+    }
+
+    if (!isSSR) {
+      // create internal watcher for the computed property.
+      watchers[key] = new Watcher(
+        vm,
+        getter || noop,
+        noop,
+        computedWatcherOptions
+      )
+    }
+
+    // component-defined computed properties are already defined on the
+    // component prototype. We only need to define computed properties defined
+    // at instantiation here.
+    if (!(key in vm)) {
+      defineComputed(vm, key, userDef)
+    } else if (process.env.NODE_ENV !== 'production') {
+      if (key in vm.$data) {
+        warn(`The computed property "${key}" is already defined in data.`, vm)
+      } else if (vm.$options.props && key in vm.$options.props) {
+        warn(`The computed property "${key}" is already defined as a prop.`, vm)
+      }
+    }
+  }
+}
+```
+
+computed 实际上也是新建了一个watcher, 当get 一个computed 属性的时候，会执行一个computed 方法获取依赖的值。以此达到实时依赖的目的。
+
+## 五 流程图
+加入响应式流程
+```mermaid
+graph LR
+
+  initMixin --> initState --> initData --> observe --> walk --> defineReactive --> Object.defineProperty
+
+   Object.defineProperty --> get --> dep.depend --> Dep.target.addDep --> dep.addSub加入更新队列
+
+   Object.defineProperty --> set --> dep.notify --> subs循环执行update --> watche.run --> watcher.get
+
+  initMixin --> $mount --> mountComponent --> Watcher --> dep.pushTarget --> Dep.target指向当前的watcher
+```
+
+**抽象来看实际上就是一个典型的 发布订阅模式**
+* Observe是发布者， 负责触发更新动作
+* Dep 是队列中心（broker）, 负责接收和通知
+* Watcher 订阅者， 负责更新视图
+* Observe 和 Watcher 完全解耦
+
+## 六 一些问题思考
 
 1. $nextTick 是如何实现的？
   其实就是创建一个异步方法来执行回调。  
@@ -800,3 +920,6 @@ graph TD
 graph LR
 父beforeCreate --> 父created --> 父beforeMount --> 子beforeCreate --> 子created --> 子beforeMount --> 子mounted --> 父mounted
 ```
+5. Object.defineProperty 到 proxy?
+- 只能对属性进行监听
+- 无法监听新增属性
