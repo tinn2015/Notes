@@ -3,6 +3,7 @@
 ## 问题
 1. Watcher、Dep、Observe 分别是什么？ 三者是什么关系？
 2. 如何实现响应式？
+3. 为什么大家现在都用vue, react 这些？
 
 ## 一 vue 初始化流程
 <div style="text-align: center">
@@ -13,7 +14,9 @@
 vue 主要是三个阶段， 初始化阶段， 依赖收集阶段， 响应阶段  
 get时收集依赖， set时触发更新  
 
-![响应式](./imgs/watch.png)
+<div style="text-align: center">
+  <img style="max-width: 800px;" src="./imgs/watch.png">
+</div>
 
 vue 入口函数
 
@@ -131,7 +134,7 @@ export function initState (vm: Component) {
   }
 }
 ```
-接着进入initData
+这是时初始化vue组件，或者时一个实例。接着进入initData
 
 ```javascript
 function initData (vm: Component) {
@@ -181,6 +184,7 @@ function initData (vm: Component) {
 ```
 
 ## 二 创建响应式数据
+**以上可以认为时到达响应式的一些前期准备**
 
 ```javascript
 export function observe (value: any, asRootData: ?boolean): Observer | void {
@@ -226,6 +230,7 @@ export class Observer {
       /* 是否有__proto__属性 */
       /* 通过重写数组方法实现，实现对数组的拦截， 有局限性比如通过下标改变数据 */
       if (hasProto) {
+        /* 这里就是value.__proto__ = arrayMethods */
         protoAugment(value, arrayMethods)
       } else {
         copyAugment(value, arrayMethods, arrayKeys)
@@ -236,9 +241,9 @@ export class Observer {
     }
   }
 ```
-首先在这个类中我们第一次看到 Dep类, dep实例是Observe类的一个属性。
+首先在这个类中我们第一次看到 Dep类, Observe类中会引入Dep。
 其次看下面两个方法。
-copyAugment主要是对数组方法splice, push,shift, pop进行重写以达到监听拦截的目的。这样做的缺陷就是无法监听到通过下标的修改。
+protoAugment主要是对数组方法splice, push,shift, pop进行重写以达到监听拦截的目的。这样做的缺陷就是无法监听到通过下标的修改。
 
 ```javascript
 const methodsToPatch = [
@@ -269,9 +274,11 @@ methodsToPatch.forEach(function (method) {
         inserted = args.slice(2)
         break
     }
+    /* 递归Observe */
     if (inserted) ob.observeArray(inserted)
     // notify change
     /* 每次执行这些方法 都会将变更通知出去，更新视图 */
+    /* 以此达到监听数组的目的 */
     ob.dep.notify()
     return result
   })
@@ -287,7 +294,7 @@ walk (obj: Object) {
     }
   }
 ```
-
+**这里是整个Observe的关键**
 ```javascript
 export function defineReactive (
   obj: Object,
@@ -318,6 +325,7 @@ export function defineReactive (
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {
+      /* 如果对象有自己的getter, 则val先经过getter处理 */
       const value = getter ? getter.call(obj) : val
       /* 注意这是Dep类的属性， 而不是实例属性 */
       if (Dep.target) {
@@ -885,7 +893,7 @@ computed 实际上也是新建了一个watcher, 当get 一个computed 属性的�
 ## 五 流程图
 加入响应式流程
 ```mermaid
-graph LR
+graph TD
 
   initMixin --> initState --> initData --> observe --> walk --> defineReactive --> Object.defineProperty
 
@@ -907,10 +915,15 @@ graph LR
 1. $nextTick 是如何实现的？
   其实就是创建一个异步方法来执行回调。  
   巧妙之处是创建的是一个MicroTask， 这样能保证在UI渲染之前改变数据  
+  ```javascript
+   /* MutationObserver 创建一个微任务 */
+   const observer = new MutationObserver(flushCallbacks)
+  ```
 
 3. 为什么现在mvvm模式成为主流？这种模式就是最好的吗？  
     没有最好的设计模式，最佳实践才是最好的。  
     mvvm(vue, react) 一定 比 mvc（jquery） 好吗？, 不是。  
+    为了把主要精力放在业务上
     **Vue, React 做到的事在开发者不花费大量精力下，获得一个不错的性能**， 让开发者更专注于业务。jquery写的好完全能获得很好的性能。
 
 4. vue 父子组件生民周期的顺序是什么？

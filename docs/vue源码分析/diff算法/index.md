@@ -67,7 +67,7 @@ Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     // based on the rendering backend used.
     if (!prevVnode) {
       // initial render
-      /* 第一次更新 */
+      /* 第一次更新, 传的参数是preNode, vNode */
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
       // updates
@@ -88,6 +88,44 @@ Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     // updated hook is called by the scheduler to ensure that children are
     // updated in a parent's updated hook.
   }
+```
+
+vm._update主要是执行vm.__patch__, __patch__是在打包的入口函数中注册的。  
+进入patch方法
+
+```javascript
+// src/platforms/web/runtime/patch.js
+/* @flow */
+/* nodeOps就是写Dom 的操作方法：createElement，createElementNS， insertBefore， removeChild等 */
+import * as nodeOps from 'web/runtime/node-ops'
+import { createPatchFunction } from 'core/vdom/patch'
+
+/* [ref, directives] ref和自定义指令相关*/
+import baseModules from 'core/vdom/modules/index'
+
+/* [
+  attrs,
+  klass,
+  events,
+  domProps,
+  style,
+  transition
+] */
+import platformModules from 'web/runtime/modules/index'
+
+// the directive module should be applied last, after all
+// built-in modules have been applied.
+/* 合并方法 */
+const modules = platformModules.concat(baseModules)
+
+export const patch: Function = createPatchFunction({ nodeOps, modules })
+```
+
+接着进入核心的createPathFunction 方法
+
+```javascript
+// src/core/vdom/patch.js
+
 ```
 
 
