@@ -1,5 +1,7 @@
 # Vue 的更新主要就是 通过diff算法实现的
 
+Vue.js将DOM抽象成一个以JavaScript对象为节点的虚拟DOM树，以VNode节点模拟真实DOM，可以对这颗抽象树进行创建节点、删除节点以及修改节点等操作，在这过程中都不需要操作真实DOM，只需要操作JavaScript对象，大大提升了性能。修改以后经过diff算法得出一些需要修改的最小单位，再将这些小单位的视图进行更新。这样做减少了很多不需要的DOM操作，大大提高了性能。
+
 **接上文**
 
 ```mermaid
@@ -53,7 +55,11 @@ export function mountComponent (
   }
 ```
 
-可见updateComponent 就是对vm._update 的封装
+可见updateComponent 就是对vm._update 的封装， 这里的第一个参数就是vnode, 所以vm._update() 就是生成vnode的方法。
+
+```javascript
+// src/core/instance/render.js
+```
 
 ```javascript
 
