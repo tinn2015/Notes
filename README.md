@@ -9,6 +9,8 @@
 
 - [响应式原理](https://github.com/tinn2015/Notes/blob/master/docs/vue/index.md)
 
+- [composition-api](https://github.com/tinn2015/Notes/blob/master/docs/composition-api/index.md)
+
 ## 设计模式
 
 - [一些常用设计模式总结](https://github.com/tinn2015/Notes/blob/master/docs/%e8%ae%be%e8%ae%a1%e6%a8%a1%e5%bc%8f/index.md)
