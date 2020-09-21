@@ -5,6 +5,8 @@
 
 - [canvas](https://github.com/tinn2015/Notes/blob/master/docs/js%e5%9f%ba%e7%a1%80/canvas.md)
 
+- [HRM](https://github.com/tinn2015/Notes/blob/master/docs/js%e5%9f%ba%e7%a1%80/webpack-HRM.md)
+
 ## Vue
 
 - [响应式原理](https://github.com/tinn2015/Notes/blob/master/docs/vue/index.md)
