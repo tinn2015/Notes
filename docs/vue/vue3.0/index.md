@@ -1,7 +1,5 @@
 # change
 
-## Global Api
-
 ### 1. Vue全局的修改
 ```javascript
 //  Vue全局api
@@ -311,3 +309,198 @@ export default {
 <!-- result -->
 <div id="red"></div>
 ```
+
+### 13. 响应式实现
+主要就是Object.definedProperty() -> Proxy
+
+**为了兼容, ie上仍然使用Object.definedProperty(), 但只是底层兼容， 上层api 是一致的**
+
+```javascript
+// 创建响应式object
+// reactive 实际上就是 vue2上的 Vue.observable()
+import { reactive } from 'vue'
+
+// reactive state
+const state = reactive({
+  count: 0
+})
+```
+
+```javascript
+// 创建一个响应式的值， 用ref
+//  这个api 的目的就是让开发者可以摆脱模板， 可以有更灵活的封装
+// ref创建的响应式值通过.value 访问， 但是再template模板中会自动展开， 无需.value
+//  ref创建的响应式值需要通过value访问的原因是： 在js 中基础类型是直接保存值得，无法做到拦截。对象、数组、map这些复杂类型保存得是引用。
+<template>
+  <div>
+    <span>{{ count }}</span>
+    <button @click="count ++">Increment count</button>
+  </div>
+</template>
+
+<script>
+  import { ref } from 'vue'
+  export default {
+    setup() {
+      const count = ref(0)
+      count.value++
+      // log -> 1
+      console.log(count.value)
+      return {
+        count
+      }
+    }
+  }
+</script>
+```
+
+```js
+// reactive 创建的响应式对象是无法解构的
+// 为了实现解构可以使用toRefs方法
+
+import { reactive, toRefs } from 'vue'
+
+const book = reactive({
+  author: 'Vue Team',
+  year: '2020',
+  title: 'Vue 3 Guide',
+  description: 'You are reading this book right now ;)',
+  price: 'free'
+})
+/*没有解构功能 eg: let { author, title } = book */
+let { author, title } = toRefs(book)
+
+title.value = 'Vue 3 Detailed Guide' // we need to use .value as title is a ref now
+console.log(book.title) // 'Vue 3 Detailed Guide'
+```
+
+### 14. watchEffect
+
+```js
+//  watchEffect 会自动收集依赖， 并在依赖发生变化时执行回调方法
+const count = ref(0)
+
+watchEffect(() => console.log(count.value))
+// -> logs 0
+
+setTimeout(() => {
+  count.value++
+  // -> logs 1
+}, 100)
+```
+**与watch 和 computed的区别**
+- watch是指定依赖，watchEffect是自动收集依赖（其实也就是添加了一个watcher类型）
+- watch可以获取到新旧值， watchEffect只能拿到最新值
+- computed主要计算一个依赖其他值来渲染的值， watchEffect倾向于依赖值变化之后的回调方法
+
+**其他特性**
+```js
+// 可以手动停止监听
+// watchEffect 是在 setup 或者 生命周期里面注册的话，在组件取消挂载的时候会自动的停止掉
+const stop = watchEffect(() => {
+  /* ... */
+})
+
+// later
+stop()
+```
+
+```js
+// watchEffect 会暴露onInvalidate方法
+// 该方法可以做到再依赖值变化， 或者watcher都执行完再执行
+// 这就是为了watcher重复修改依赖值，导致很多无效的操作。
+// 会在页面更新之前调用
+watchEffect(onInvalidate => {
+  const token = performAsyncOperation(id.value)
+  onInvalidate(() => {
+    // id has changed or watcher is stopped.
+    // invalidate previously pending async operation
+    token.cancel()
+  })
+})
+```
+
+```javascript
+//  onTrack 和 onTrigger 可以用来debug依赖的watcher
+watchEffect(
+  () => {
+    /* side effect */
+  },
+  onTrack  (e) {
+    debugger
+  },
+  {
+    onTrigger(e) {
+      debugger
+    }
+  }
+)
+```
+
+## Composition Api
+----
+
+目的只有一个： 脱离模板让业务逻辑更加灵活
+
+mixins 的缺点：
+- 可能会产生命名冲突， 难以维护
+- 无法传参， 灵活性不够好。
+其实问题就在mixins 还是面向模板， 我们期望的是面向函数。
+
+
+### 1. setUp
+- 再组件created 之前执行， composition api 的入口
+- setUp执行的在组件created 之前， 所以setUp 中没有this, 无法访问组件中申明的state、computed、methods
+- setUp 中生命周期hook： onBeforeMount、onMounted、onBeforeUpdate、onUpdated、onBeforeUnmount、onUnmounted、onErrorCaptured、onRenderTracked、onRenderTriggered
+
+```js
+//  setUp 接受两个参数
+// 注意setUp 中得this 指向作用域， 不再指向vue 实例
+setup(props, context) {
+  // props 注意无法解构获取
+  console.log(props.title)
+  // Attributes (Non-reactive object)
+  console.log(context.attrs)
+
+  // Slots (Non-reactive object)
+  console.log(context.slots)
+
+  // Emit Events (Method)
+  console.log(context.emit)
+}
+```
+
+```js
+// 示例
+<template>
+  <div>{{ collectionName }}: {{ readersNumber }} {{ book.title }}</div>
+</template>
+
+<script>
+  import { ref, reactive } from 'vue'
+
+  export default {
+    props: {
+      collectionName: String
+    },
+    setup(props) {
+      const readersNumber = ref(0)
+      const book = reactive({ title: 'Vue 3 Guide' })
+
+      // expose to template
+      return {
+        readersNumber,
+        book
+      }
+    }
+  }
+</script>
+```
+
+
+
+
+
+问题？
+
+1. 改为proxy, get得时候track?, set 的时候 trigger?, Reflect 的作用是什么？
