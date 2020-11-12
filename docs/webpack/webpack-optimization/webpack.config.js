@@ -34,7 +34,8 @@ module.exports = {
 		stats: "errors-only", //终端仅打印 error
 		overlay: false, //默认不启用
 		clientLogLevel: "silent", //日志等级
-		compress: true //是否启用 gzip 压缩
+		compress: true, //是否启用 gzip 压缩
+		contentBase: path.resolve(__dirname, 'dist')
 	},
   module: {
       rules: [
@@ -98,7 +99,13 @@ module.exports = {
 				// hash: true //是否加上hash，默认是 false
 		}),
 
-		new CleanWebpackPlugin(),
+		new webpack.DllReferencePlugin({
+			manifest: path.resolve(__dirname, 'dist/dll/manifest.json')
+		}),
+
+		new CleanWebpackPlugin({
+			cleanOnceBeforeBuildPatterns: ['**/*', '!dll', '!dll/**']
+		}),
 		new CopyWebpackPlugin([
 			{
 				from: 'public/js/*.js',

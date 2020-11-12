@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>算法测试</title>
+</head>
+<body>
+  <script>
+    // 121 -> 121
+    var isPalindrome = function(x) {
+      let origin = x
+      let stringArr = [...x.toString()]
+      let len = stringArr.length
+      let cycle = parseInt(len / 2)
+      for (let i = 0; i < cycle; i++) {
+        let temp = stringArr[len - 1 - i]
+
+        stringArr[len - 1 - i] = stringArr[i]
+        stringArr[i] = temp
+      }
+      if (origin.toString() === stringArr.join('')) {
+        return true
+      } else {
+        return false
+      }
+    };
+
+    // isPalindrome(121)
+
+
+    var longestCommonPrefix = function(strs) {
+      if (!strs.length) {
+        return ''
+      }
+      let temp = []
+      let first = strs.shift()
+      let firstLen = first.length
+      let firstStrArr = [...first]
+      for (let i = 0; i < firstLen; i++) {
+        temp.push({
+          key: first[i],
+          num: 1,
+          index: i
+        })
+      }
+      let len = strs.length
+      strs.forEach(i => {
+        let strArr = [...i]
+        strArr.forEach((j, index) => {
+          console.log(temp)
+          let arrIndex = temp.findIndex((item) => {
+            return item && item.key === j && item.index === index
+          })
+          if (arrIndex > -1) {
+            temp[arrIndex].num++
+          }
+        })
+      });
+      let result = ''
+      for (let i = 0; i < temp.length; i ++) {
+        if (temp[i].num === len + 1) {
+          result += temp[i].key
+        } else {
+          break
+        }
+      }
+      console.log(result)
+      return result
+    };
+    longestCommonPrefix(['aa', 'aa'])
+  </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div onclick="click()" id="btn">throttle</div>
+  <script>
+    window.onresize = debounce(log, 2000)
+
+    function log () {
+      console.log('debounce')
+    }
+
+    window.onload = function () {
+      document.getElementById('btn').onclick = debounce(log, 2000)
+    }
+
+    function click () {
+      console.log('click')
+      // throttle(log, 2000)
+    }
+
+    function debounce (fn, delay) {
+      let timer = null
+
+      return function () {
+        clearTimeout(timer)
+        let args = Array.from(arguments)
+        timer = setTimeout(() => {
+          fn.apply(this, args)
+        }, delay)
+      }
+    }
+
+    function throttle (fn, delay) {
+      let timer = null
+
+      return function () {
+        let context = this
+        let args = Array.from(arguments)
+
+        if (!timer) {
+          timer = setTimeout(() => {
+            fn.apply(context, arguments)
+            timer = null
+          }, delay)
+        }
+      }
+    }
+  </script>
+</body>
+</html>
