@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .box {
+      /* width: 400px;
+      height: 200px; */
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="canvas"></canvas>
+  <canvas id="canvas2"></canvas>
+  <canvas id="canvas3"></canvas>
+  <canvas id="canvas4"></canvas>
+  <canvas id="canvas5"></canvas>
+  <canvas id="canvas6"></canvas>
+  <canvas id="canvas7"></canvas>
+  <canvas id="canvas8"></canvas>
+  <canvas id="canvas9" width="300" height="450"></canvas>
+  <canvas id="canvas10" width="300" height="450"></canvas>
+
+  <script>
+    var ctx = document.getElementById('canvas').getContext('2d')
+
+    function draw() {
+      /* 矩形 */
+      ctx.fillRect(25, 25, 100, 100);
+      /* 清空矩形 */
+      ctx.clearRect(45, 45, 60, 60);
+      /* 描边 */
+      ctx.strokeRect(50, 50, 50, 50);
+    }
+
+    draw()
+  </script>
+  <script>
+    /* 三角形 */
+    var ctx = document.getElementById('canvas2').getContext('2d')
+
+    function draw() {
+      /* 画路径需设置起点 */
+      ctx.beginPath()
+      /* moveTo 可理解为开始下笔得位置 */
+      ctx.moveTo(75, 50)
+      /* 绘制一条直线当前位置到（100， 75）的直线 */
+      ctx.lineTo(100, 75)
+      ctx.lineTo(100, 25)
+      /* 设置填充颜色 */
+      ctx.fillStyle = "orange"
+      /* 填充轨迹 */
+      /* fill由两个参数： nonzero（默认）， evenodd控制填充区域在路径里外 */
+      ctx.fill()
+    }
+
+    draw()
+  </script>
+  <script>
+    /* 画个笑脸 */
+    var ctx = document.getElementById('canvas3').getContext('2d')
+
+    function draw() {
+      /* 画路径需设置起点 */
+      ctx.beginPath()
+      /* 设置描边颜色 */
+      /* 注意：一旦您设置了 strokeStyle 或者 fillStyle 的值，那么这个新值就会成为新绘制的图形的默认值。如果你要给每个图形上不同的颜色，你需要重新设置 fillStyle 或 strokeStyle 的值。  */
+      ctx.strokeStyle = "orange"
+      /* 画一个(75, 75)为圆心， 50为半径， 0度到360度，顺时针的圆弧 */
+      ctx.arc(75, 75, 50, 0, Math.PI * 2, true)
+      ctx.moveTo(110, 75);
+      ctx.arc(75, 75, 35, 0, Math.PI, false)
+      ctx.moveTo(65, 65)
+      ctx.arc(60, 65, 5, 0, Math.PI * 2, true)
+      ctx.moveTo(95, 65);
+      ctx.arc(90, 65, 5, 0, Math.PI * 2, true)
+      /* 将画笔经过得轨迹描出来 */
+      ctx.stroke();
+    }
+
+    draw()
+  </script>
+  <script>
+      /* 填充和描边的区别 */
+      var ctx = document.getElementById('canvas4').getContext('2d')
+  
+      function draw() {
+        // 填充三角形
+        ctx.beginPath();
+        ctx.moveTo(25, 25);
+        ctx.lineTo(105, 25);
+        ctx.lineTo(25, 105);
+        ctx.fill();
+
+        // 描边三角形
+        ctx.beginPath();
+        ctx.moveTo(125, 125);
+        ctx.lineTo(125, 45);
+        ctx.lineTo(45, 125);
+        ctx.closePath();
+        ctx.stroke();
+      }
+      /* 区别就是填充时(fill)路劲是自动闭合的，描边（stroke）不会自动闭合路劲，需要手动闭合closePath() */
+      /* 上图如果未closePath实际上才绘制了两条线 */
+      draw()
+    </script>
+
+  <script>
+    /* 关于透明度、线条 */
+    var ctx = document.getElementById('canvas5').getContext('2d')
+
+    function draw() {
+      var lineCap = ['butt','round','square']
+      /* 线段闭合处样式 圆的，平的，尖的 */
+      var lineJoin = ['round', 'bevel', 'miter']
+      for (var i = 0; i < 10; i++){
+        /* 定义线的宽度 */
+        ctx.lineWidth = 1+i;
+        ctx.beginPath();
+        ctx.moveTo(5+i*14,5);
+        /* 定义线段端点的样式 */
+        ctx.lineCap = lineCap[1]
+        ctx.lineTo(5+i*14,140);
+        if (i == 6) {
+          // ctx.setLineDash([4, 2])
+          ctx.strokeStyle = 'rgba(0,0,0, 0.4)'
+        }
+        if (i === 2) {
+          /* 设置线段为4 间距为10 的虚线 */
+          ctx.setLineDash([4, 10])
+          ctx.lineDashOffset = -10
+        } else {
+          /* 前面设置的样式会影响后面的 */
+          ctx.setLineDash([0, 0])
+        }
+        /* 线段颜色 */
+        ctx.strokeStyle = "green"
+        ctx.stroke();
+      }
+    }
+
+    draw()
+  </script>
+  <script>
+    /* 关于渐变 */
+    var ctx = document.getElementById('canvas6').getContext('2d')
+
+    function draw() {
+      /* 创建一个(0, 0)为起点， (150, 150)为终点的线性渐变 */
+      /* 可以理解为0，150这个矩形的左上角到右下角渐变 */
+      var lineargradient = ctx.createLinearGradient(0,0,150,150);
+      /* 0可以表示为起点， 1为终点， 意思为由白到黑的渐变*/
+      lineargradient.addColorStop(0,'white');
+      lineargradient.addColorStop(1,'black');
+      ctx.strokeStyle = lineargradient
+      ctx.strokeRect(0, 0, 150, 150)
+
+      ctx.moveTo(200, 250)
+
+      /* 定义一个(45, 45)为圆心10为半径的圆到(52, 50)为圆心30为半径的径向渐变 */
+      /* 什么是径向渐变： https://www.cnblogs.com/rainke/p/5294039.html */
+      var radialGradient = ctx.createRadialGradient(45,45,10,52,50,30)
+      radialGradient.addColorStop(0, '#A7D30C');
+      radialGradient.addColorStop(0.9, '#019F62');
+      radialGradient.addColorStop(1, 'rgba(1,159,98,0)');
+      ctx.fillStyle = radialGradient;
+      ctx.fillRect(0,0,150,150);  
+    }
+
+    draw()
+  </script>
+  <script>
+    /* 图案样式Patterns， 阴影 */
+    var ctx = document.getElementById('canvas7').getContext('2d')
+
+    function draw() {
+      // 创建新 image 对象，用作图案
+      var img = new Image();
+      img.src = 'https://mdn.mozillademos.org/files/222/Canvas_createpattern.png';
+      img.onload = function() {
+
+        // 创建图案
+        /* 这个图案可以更好的repeat，[repeat，repeat-x，repeat-y, no-repeat] */
+        var ptrn = ctx.createPattern(img, 'repeat');
+        /* 将一个重复的背景填充到矩形区域 */
+        ctx.fillStyle = ptrn;
+        ctx.fillRect(0, 0, 150, 150);
+
+        ctx.moveTo(300, 100)
+        /* 文本以及阴影 */
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+        /* 设定阴影的模糊程度 */
+        ctx.shadowBlur = 2;
+        ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+      
+        ctx.font = "20px Times New Roman";
+        ctx.fillStyle = "Black";
+        /* 从(5, 30)开始写 */
+        ctx.fillText("Sample String", 5, 30);
+      }
+    }
+
+    draw()
+  </script>
+   <script>
+    /* save和restore */
+    /* 主要说明canvas的状态 */
+    var ctx8 = document.getElementById('canvas8').getContext('2d')
+
+    function draw() {
+      ctx8.fillRect(0,0,150,150);  
+      /* 我们称这个save为save1, 此时背景为黑色 */
+      ctx8.save();            
+
+      ctx8.fillStyle = '#09F'       
+      ctx8.fillRect(15,15,120,120); 
+      /* save2, 背景为蓝色 */
+      ctx8.save();                  
+      ctx8.fillStyle = '#FFF'     
+      ctx8.globalAlpha = 0.5;    
+      ctx8.fillRect(30,30,90,90); 
+      /* 这里就是恢复到save2, 的设置， 所以填充的为蓝色 */
+      /* 这里要是不restore, 那么就会直接继承上面白色透明度为0.5的配置 */
+      ctx8.restore();               
+      ctx8.fillRect(45,45,60,60); 
+      /* 这里就是恢复到save1, 的设置， 所以填充的为黑色 */
+      ctx8.restore();         
+      ctx8.fillRect(60,60,30,30);  
+    }
+
+    draw()
+  </script>
+  <script>
+    /* translate, rotating, scaling, transform */
+    var ctx9 = document.getElementById('canvas9').getContext('2d')
+
+    function draw() {
+      ctx9.fillRect(0,0,50,50)
+      /* 画布原点便宜坐标 */
+      ctx9.translate(100, 100)
+      /* 旋转角度 */
+      ctx9.rotate(Math.PI*2 / 45)
+      /* 方法1.5倍 */
+      ctx9.scale(1.2, 1.2)
+      /* 以X轴来作为对称轴来进行镜像反转 */
+      ctx9.scale(-1, 1)
+      ctx9.fillRect(0,0,70,70)
+      /* 另外transform 允许直接修改变形矩阵 */
+    }
+
+    draw()
+  </script>
+  <script>
+    var sun = new Image();
+    var moon = new Image();
+    var earth = new Image();
+    function init(){
+      sun.src = 'https://mdn.mozillademos.org/files/1456/Canvas_sun.png';
+      moon.src = 'https://mdn.mozillademos.org/files/1443/Canvas_moon.png';
+      earth.src = 'https://mdn.mozillademos.org/files/1429/Canvas_earth.png';
+      window.requestAnimationFrame(draw);
+    }
+
+    function draw() {
+      var ctx10 = document.getElementById('canvas10').getContext('2d');
+
+      ctx10.globalCompositeOperation = 'destination-over';
+      ctx10.clearRect(0,0,300,300); // clear canvas
+
+      ctx10.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx10.strokeStyle = 'rgba(0,153,255,0.4)';
+      ctx10.save();
+      ctx10.translate(150,150);
+
+      // Earth
+      var time = new Date();
+      ctx10.rotate( ((2*Math.PI)/60)*time.getSeconds() + ((2*Math.PI)/60000)*time.getMilliseconds() );
+      ctx10.translate(105,0);
+      ctx10.fillRect(0,-12,50,24); // Shadow
+      ctx10.drawImage(earth,-12,-12);
+
+      // Moon
+      ctx10.save();
+      ctx10.rotate( ((2*Math.PI)/6)*time.getSeconds() + ((2*Math.PI)/6000)*time.getMilliseconds() );
+      ctx10.translate(0,28.5);
+      ctx10.drawImage(moon,-3.5,-3.5);
+      ctx10.restore();
+
+      ctx10.restore();
+      
+      ctx10.beginPath();
+      ctx10.arc(150,150,105,0,Math.PI*2,false); // Earth orbit
+      ctx10.stroke();
+    
+      ctx10.drawImage(sun,0,0,300,300);
+
+      window.requestAnimationFrame(draw);
+    }
+
+    init();
+  </script>
+</body>
+</html>

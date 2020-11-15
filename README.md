@@ -3,9 +3,15 @@
 ## js基础
 - [一些js问题总结](https://github.com/tinn2015/Notes/blob/master/docs/js%e5%9f%ba%e7%a1%80/index.md)
 
-## Vue源码
+- [canvas](https://github.com/tinn2015/Notes/blob/master/docs/js%e5%9f%ba%e7%a1%80/canvas.md)
 
-- [响应式原理](https://github.com/tinn2015/Notes/blob/master/docs/vue%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8E%9F%E7%90%86/index.md)
+- [HRM](https://github.com/tinn2015/Notes/blob/master/docs/js%e5%9f%ba%e7%a1%80/webpack-HRM.md)
+
+## Vue
+
+- [响应式原理](https://github.com/tinn2015/Notes/blob/master/docs/vue/index.md)
+
+- [composition-api](https://github.com/tinn2015/Notes/blob/master/docs/composition-api/index.md)
 
 ## 设计模式
 
@@ -24,6 +30,8 @@
 
 - [webpack进阶](https://github.com/tinn2015/Notes/blob/master/docs/webpack/%e8%bf%9b%e9%98%b6%e9%85%8d%e7%bd%ae%e8%af%b4%e6%98%8e.md)
 
+- [webpack优化](https://github.com/tinn2015/Notes/blob/master/docs/webpack/webpack%e4%bc%98%e5%8c%96.md)
+
 ## 其他
 
 - [http缓存机制](https://github.com/tinn2015/Notes/blob/master/docs/%e5%85%b6%e4%bb%96/http%e7%bc%93%e5%ad%98%e6%9c%ba%e5%88%b6.md)
@@ -35,3 +43,5 @@
 - [async/await](https://github.com/tinn2015/Notes/blob/master/docs/%e5%85%b6%e4%bb%96/async+await%e5%ae%9e%e7%8e%b0.md)
 
 - [一个Url的过程](https://github.com/tinn2015/Notes/blob/master/docs/%e5%85%b6%e4%bb%96/%e4%b8%80%e4%b8%aaUrl%e7%9a%84%e8%bf%87%e7%a8%8b.md)
+
+- [cookie](https://github.com/tinn2015/Notes/blob/master/docs/cookie.md)

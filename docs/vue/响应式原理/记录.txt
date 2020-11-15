@@ -9,3 +9,4 @@
 1. watcher 是什么时候建立的？
 2. watcher 分为渲染的watcher 和 自己写的watcher
 3. 要看懂 watcher 类
+4. vue 组件的生命周期加载顺序
